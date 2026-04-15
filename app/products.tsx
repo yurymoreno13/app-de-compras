@@ -6,10 +6,11 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { getProducts } from '../services/products'; // <- importante: ruta relativa
+import { getProducts } from '../services/products';
 import { clearSession } from '../services/auth';
 
 export const localCart: any[] = [];
@@ -19,7 +20,7 @@ type Product = {
   name: string;
   description?: string;
   price: number;
-  image?: string;
+  imageUrl?: string;
 };
 
 export default function ProductsScreen() {
@@ -30,7 +31,6 @@ export default function ProductsScreen() {
     try {
       const response = await getProducts();
 
-      // por si el backend devuelve array directo o dentro de data
       const data = Array.isArray(response) ? response : response?.data || [];
 
       setProducts(data);
@@ -102,7 +102,14 @@ export default function ProductsScreen() {
         <View style={styles.productsContainer}>
           {products.map((product) => (
             <View key={product.id} style={styles.card}>
-              <View style={styles.imagePlaceholder} />
+              {product.imageUrl ? (
+                <Image
+                  source={{ uri: product.imageUrl }}
+                  style={styles.productImage}
+                />
+              ) : (
+                <View style={styles.imagePlaceholder} />
+              )}
 
               <Text style={styles.productName}>{product.name}</Text>
               <Text style={styles.productDescription}>
@@ -166,6 +173,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#f7f3f5',
     borderRadius: 18,
     padding: 16,
+  },
+  productImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: 14,
+    marginBottom: 14,
+    resizeMode: 'cover',
   },
   imagePlaceholder: {
     height: 180,
