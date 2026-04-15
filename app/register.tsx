@@ -10,11 +10,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { registerUser } from '../services/auth';
+import { encryptPassword } from '../utils/encryption';
 
 export default function RegisterScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
     if (!name || !email || !password) {
@@ -23,10 +26,27 @@ export default function RegisterScreen() {
     }
 
     try {
+      setLoading(true);
+
+      const fullName = name.trim();
+      const parts = fullName.split(' ').filter(Boolean);
+      const firstName = parts[0] || fullName;
+      const lastName = parts.slice(1).join(' ') || 'Usuario';
+
+      await registerUser({
+        firstName,
+        lastName,
+        identificationNumber: `${Date.now()}`,
+        email: email.trim().toLowerCase(),
+        encryptedPassword: encryptPassword(password),
+      });
+
       Alert.alert('Éxito', 'Cuenta creada correctamente');
       router.replace('/');
     } catch (error: any) {
       Alert.alert('Error', error?.message || 'No fue posible crear la cuenta');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,8 +86,14 @@ export default function RegisterScreen() {
             onChangeText={setPassword}
           />
 
-          <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-            <Text style={styles.registerButtonText}>Crear cuenta</Text>
+          <TouchableOpacity
+            style={styles.registerButton}
+            onPress={handleRegister}
+            disabled={loading}
+          >
+            <Text style={styles.registerButtonText}>
+              {loading ? 'Creando...' : 'Crear cuenta'}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity

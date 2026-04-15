@@ -59,7 +59,7 @@ export const loginUser = async (
       Accept: 'application/json',
     },
     body: JSON.stringify({
-      email,
+      email: email.trim().toLowerCase(),
       encryptedPassword,
     }),
   });
